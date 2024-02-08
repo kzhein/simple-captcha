@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Captcha</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Simple Captcha</h1>
+      <form>
+        <label for="data">
+          Type something
+          <input type="text" name="data" id="data" required />
+        </label>
+
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+          "
+        >
+          <div style="margin-right: 15px">
+            <img alt="captcha" id="captchaImage" />
+          </div>
+
+          <label for="captcha">
+            Verify code
+            <input type="text" name="captcha" id="captcha" required />
+          </label>
+        </div>
+
+        <button>Submit</button>
+      </form>
+    </main>
+
+    <script type="module">
+      import { v4 as uuidv4 } from 'https://jspm.dev/uuid';
+
+      const captchaImage = document.querySelector('#captchaImage');
+      const captchaInput = document.querySelector('#captcha');
+      const dataInput = document.querySelector('#data');
+      const form = document.querySelector('form');
+
+      const setCaptchaImage = () => {
+        const id = uuidv4();
+        captchaImage.src = `/captcha-image?id=${id}`;
+        captchaImage.dataset.id = id;
+      };
+
+      setCaptchaImage();
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const res = await fetch('/data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: captchaImage.dataset.id,
+            token: captchaInput.value,
+            data: dataInput.value,
+          }),
+        });
+
+        const json = await res.json();
+
+        alert(json.message);
+
+        if (res.ok) {
+          form.reset();
+        } else {
+          captchaInput.value = '';
+        }
+        setCaptchaImage();
+      });
+    </script>
+  </body>
+</html>
