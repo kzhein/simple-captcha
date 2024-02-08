@@ -1,19 +1,22 @@
 const captcha = require('trek-captcha');
 const express = require('express');
 const path = require('path');
+const serverless = require('serverless-http');
 
 const app = express();
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
+// global is used here to maintain data across hot reloads in development because netlify cli reruns the whole file for every request unlike the real serverless environment
+global.captchaDb = global.captchaDb || {};
+const captchaDb = global.captchaDb; // Should use a real db in production. Redis with key expiration would be a good fit for this
 // {
 //   '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d': {
 //     token: 'opbvv',
 //     timestamp: 1707377491642,
 //   }
 // }
-const captchaDb = {}; // Should use a real db in production. Redis with key expiration would be a good fit for this
 
 app.get('/captcha-image', async (req, res) => {
   const { id } = req.query;
@@ -55,6 +58,7 @@ app.post('/data', async (req, res) => {
   return res.status(200).send({ message: 'Data submitted successfully' });
 });
 
-app.listen(4000, () => {
-  console.log('Server running on port 4000');
+exports.handler = serverless(app, {
+  basePath: '/.netlify/functions/app',
+  binary: ['image/png'],
 });
