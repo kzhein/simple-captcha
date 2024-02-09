@@ -50,7 +50,7 @@
 
       const setCaptchaImage = () => {
         const id = uuidv4();
-        captchaImage.src = `/.netlify/functions/app/captcha-image?id=${id}`;
+        captchaImage.src = `/captcha-image?id=${id}`;
         captchaImage.dataset.id = id;
       };
 
@@ -59,7 +59,7 @@
       form.addEventListener('submit', async e => {
         e.preventDefault();
 
-        const res = await fetch('/.netlify/functions/app/data', {
+        const res = await fetch('/data', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
